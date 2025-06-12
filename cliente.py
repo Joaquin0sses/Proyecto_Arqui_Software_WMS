@@ -1,12 +1,16 @@
 import socket
+from config import ESB_HOST, ESB_PORT
+from utils.protocolo import construir_mensaje
 
-HOST = 'localhost'
-PORT = 8000  # Puerto del ESB
+def enviar_solicitud(servicio, accion, datos=None):
+    mensaje = construir_mensaje(servicio, accion, datos)
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.connect((ESB_HOST, ESB_PORT))
+        s.sendall(mensaje.encode())
+        respuesta = s.recv(4096).decode()
+        print(f"[Cliente] Respuesta: {respuesta}")
 
-mensaje = "productos:obtener_productos"
-
-with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-    s.connect((HOST, PORT))
-    s.sendall(mensaje.encode())
-    respuesta = s.recv(1024).decode()
-    print(f"[Cliente] Respuesta del sistema: {respuesta}")
+# Prueba: obtener lista de productos
+if __name__ == "__main__":
+    enviar_solicitud("productos", "listar")
+    enviar_solicitud("productos", "crear", {"nombre": "Estantería"})
